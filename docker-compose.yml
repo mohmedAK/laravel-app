@@ -51,3 +51,12 @@ services:
 networks:
   laravel-network:
     driver: bridge
+
+x-bake:
+  docker:
+    build:
+      no-cache: true
+      pull: true
+
+# أو تأكد من أنك لا تستخدم:
+# DOCKER_BUILDKIT=1
