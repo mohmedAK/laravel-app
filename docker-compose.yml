@@ -16,7 +16,15 @@ services:
     volumes:
       - ./:/var/www
     networks:
-      - laravel-network
+      - backend-network
+
+    depends_on:
+      - db
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.laravel.rule=Host(`app.it-mak.org`)"
+      - "traefik.http.routers.laravel.entrypoints=web"
+      - "traefik.http.services.laravel.loadbalancer.server.port=9000"
 
   db:
     image: mysql:8.0
@@ -32,25 +40,30 @@ services:
     volumes:
       - ./docker-compose/mysql:/docker-entrypoint-initdb.d
     networks:
-      - laravel-network
+      - backend-network
 
   nginx:
     image: nginx:alpine
     container_name: nginx-laravel # Change this to your container name
     restart: unless-stopped
-    ports:
-      - 80:80
-      - 443:443
     volumes:
       - ./:/var/www
       - ./docker-compose/nginx:/etc/nginx/conf.d
       - ./docker-compose/nginx/ssl:/etc/nginx/conf.d/ssl  # Mount SSL certificate
     networks:
-      - laravel-network
+      - backend-network
+
+    depends_on:
+      - app
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.web.rule=Host(`app.it-mak.org`)"
+      - "traefik.http.routers.web.entrypoints=web"
+      - "traefik.http.services.web.loadbalancer.server.port=80"
 
 networks:
-  laravel-network:
-    driver: bridge
+  backend-network:
+    external: true
 
 x-bake:
   docker:
