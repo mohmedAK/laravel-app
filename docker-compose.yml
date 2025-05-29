@@ -18,29 +18,23 @@ services:
     networks:
       - backend-network
 
-    depends_on:
-      - db
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.laravel.rule=Host(`app.it-mak.org`)"
-      - "traefik.http.routers.laravel.entrypoints=web"
-      - "traefik.http.services.laravel.loadbalancer.server.port=9000"
-
   db:
     image: mysql:8.0
     container_name: mysql-laravel # Change this to your container name
     restart: unless-stopped
     environment:
-      MYSQL_DATABASE: ${DB_DATABASE}
-      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
-      MYSQL_PASSWORD: ${DB_PASSWORD}
-      MYSQL_USER: ${DB_USERNAME}
+      MYSQL_DATABASE: demo_app_db         #${DB_DATABASE}
+      MYSQL_ROOT_PASSWORD: password                #${DB_PASSWORD}
+      MYSQL_PASSWORD: password               #${DB_PASSWORD}
+      MYSQL_USER: admin #${DB_USERNAME}
       SERVICE_TAGS: dev
       SERVICE_NAME: mysql
     volumes:
       - ./docker-compose/mysql:/docker-entrypoint-initdb.d
     networks:
       - backend-network
+    ports:
+      - "3307:3306"  # اختياري لو أردت الوصول من خارج الحاوية
 
   nginx:
     image: nginx:alpine
@@ -52,14 +46,11 @@ services:
       - ./docker-compose/nginx/ssl:/etc/nginx/conf.d/ssl  # Mount SSL certificate
     networks:
       - backend-network
-
+    ports:
+      - "8081:80"  # تغيير البورت لتجنب تعارض 80
     depends_on:
       - app
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.web.rule=Host(`app.it-mak.org`)"
-      - "traefik.http.routers.web.entrypoints=web"
-      - "traefik.http.services.web.loadbalancer.server.port=80"
+
 
 networks:
   backend-network:
